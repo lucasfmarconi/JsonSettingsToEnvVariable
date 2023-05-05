@@ -19,7 +19,10 @@ internal class Program
             var worker = serviceProvider.GetService<Worker>() ?? throw new ArgumentNullException(nameof(Worker));
 
             if (args is not null && args.Length > 0)
-                worker.DoWork(args);
+            {
+                DoWork(args, worker, logger);
+                return;
+            }
 
             var jsonFilePath = "appsettings.json";
             var envFilePath = "appsettings.env";
@@ -42,21 +45,23 @@ internal class Program
 
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("Converting values...");
 
-            worker.DoWork(new[] { jsonFilePath, envFilePath, equalityEnvDelimiter });
-
-            logger.LogInformation("Application finished.");
+            DoWork(new[] { jsonFilePath, envFilePath, equalityEnvDelimiter }, worker, logger);
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
+            Console.Read();
             throw;
         }
-        finally
-        {
-            Console.ReadKey();
-        }
+    }
+
+    private static void DoWork(string[] args, Worker worker, ILogger logger)
+    {
+        Console.WriteLine("Converting values...");
+        worker.DoWork(args);
+        logger.LogInformation("Application finished.");
+        Console.Read();
     }
 
     private static ServiceProvider BuildService(out ILogger<Program> logger)
